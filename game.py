@@ -29,6 +29,7 @@ class Game:
 		self.clock = pygame.time.Clock()
 
 		self.player = Player(self.GAME_WIDTH, self.GAME_HEIGHT) #MAKE PLAYER
+		self.boss = blackBear((self.GAME_WIDTH, self.GAME_HEIGHT))
 
 	def update(self, events, delta, keys):
 		self.state_stack[-1].update(events, delta, keys)

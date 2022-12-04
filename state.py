@@ -36,6 +36,8 @@ class titleState(State):
 		if keys[pygame.K_SPACE]:
 			new_state = fightState(self.game, None)
 			new_state.enter_state()
+			self.game.boss.init_pause_timer = pygame.time.get_ticks()
+			self.game.boss.idle_timer = pygame.time.get_ticks()
 			
 
 class fightState(State):
@@ -43,6 +45,7 @@ class fightState(State):
 		self.game = game
 		self.game.player.pos[0] = 180
 		self.boss = boss
+		self.game.boss.init_pause_timer = pygame.time.get_ticks()
 
 		self.bg = pygame.transform.scale(pygame.image.load('assets/stage/test_fight_bg.png'), (self.game.GAME_WIDTH, self.game.GAME_HEIGHT)).convert_alpha()
 		self.platform = pygame.transform.scale(pygame.image.load('assets/stage/temp_fight_platform.png'), (self.game.GAME_WIDTH, self.game.GAME_HEIGHT)).convert_alpha()
@@ -52,7 +55,6 @@ class fightState(State):
 		self.trunks_bg = pygame.transform.scale(pygame.image.load('assets/stage/fight_trees_bg.png'), (self.game.GAME_WIDTH*2, self.game.GAME_HEIGHT)).convert_alpha() 
 		self.god_rays = pygame.image.load('assets/stage/god_rays.png').convert_alpha()
 		self.god_rays = pygame.transform.scale(self.god_rays, (self.god_rays.get_width()*2, self.god_rays.get_height()*2))
-		self.temp_boss = pygame.transform.scale(pygame.image.load('assets/boss/temp_boss_v1.png').convert_alpha(), (self.game.GAME_WIDTH, self.game.GAME_HEIGHT)).convert_alpha() 
 
 		self.honey_bar_honey = pygame.image.load('assets/ui/honey_bar_honey.png').convert_alpha()
 		self.honey_bar_outline = pygame.image.load('assets/ui/honey_bar_outline.png').convert_alpha()
@@ -60,6 +62,7 @@ class fightState(State):
 		self.honey_bar_cover = pygame.Rect(self.honey_bar_rect.x, self.honey_bar_rect.y+5, self.honey_bar_outline.get_width(), self.honey_bar_outline.get_height()-10)
 
 	def update(self, events, delta, keys):
+		self.game.boss.update(delta)
 		self.game.player.update(events, delta, keys) 
 		self.honey_bar_cover.height = (self.honey_bar_rect.height-10) * (1 - (self.game.player.honey/self.game.player.honey_max))
 
@@ -68,9 +71,9 @@ class fightState(State):
 		surface.blit(self.bg, (0,0))
 		self.doBGParallax(surface, player_offset)
 		surface.blit(self.god_rays, (player_offset-30,player_offset-30), special_flags=1)
-		surface.blit(self.temp_boss, (0,0))
+		attack_mask = self.game.boss.render(surface)
 		surface.blit(self.platform_bg, (0,6)) #render platform grass in bg
-		self.game.player.render(surface) #render player 
+		self.game.player.render(surface, attack_mask) #render player 
 		surface.blit(self.platform, (0,15)) #render platform
 		self.renderUI(surface)
 

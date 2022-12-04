@@ -14,7 +14,7 @@ class Player():
 		self.previous_pos = [0,0]
 		self.surf = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
 		self.rect = pygame.Rect(0, 0, self.width, self.height)
-		self.rect_hit = pygame.Rect(0, 0, self.width*0.75, self.height*0.9)
+		self.mask = pygame.mask.from_surface(self.surf)
 
 		self.state = 0 #0-Grounded, 1-Flying
 		self.grounded_speed = 3 #Speed on ground
@@ -62,6 +62,7 @@ class Player():
 								pygame.transform.scale(pygame.image.load('assets/player/bee_fly_idle_3_sheet.png').convert_alpha(), (self.width*4, self.height)),
 								pygame.transform.scale(pygame.image.load('assets/player/bee_fly_idle_4_sheet.png').convert_alpha(), (self.width*4, self.height))]
 		self.fly_fastfall_image = pygame.transform.scale(pygame.image.load('assets/player/bee_fly_fastfall.png').convert_alpha(), (self.width, self.height))
+		self.splat_image = pygame.transform.scale(pygame.image.load('assets/player/bee_splat.png').convert_alpha(), (self.width, self.height))
 
 	def update(self, events, delta, keys):
 		self.frame = self.frame + (1 * delta * 60) #increment frame counter
@@ -79,6 +80,9 @@ class Player():
 					self.button_release = True
 				case _:
 					pass
+
+		if self.state == -1:
+			pass
 
 		if self.state == 0: #GROUNDED
 			self.honey = self.honey + (self.honey_gain_rate * delta * 60) #increase honey for being on ground
@@ -141,7 +145,7 @@ class Player():
 		self.updateRect() #update rectangle to pos
 
 
-		if pygame.time.get_ticks() - self.line_timer > (50 * 60 * delta): #make line every 50 seconds
+		if pygame.time.get_ticks() - self.line_timer > (50 * 60 * delta) and self.state > -1: #make line every 50 seconds we alive
 			self.line_timer = pygame.time.get_ticks() #reset line timer
 			self.updateLines(delta)
 
@@ -152,10 +156,12 @@ class Player():
 				if particle.width <= 0 or particle.x < 9 or particle.x > self.game_width or particle.y > self.game_height:
 					self.particles.remove(particle)
 
-	def render(self, surface):
+	def render(self, surface, attack_mask):
 		self.surf.fill((0,0,0,0))
 		honey_val = int(self.honey//(self.honey_max/5+1)) #get current honey val (plus one so it doesn't loop to 0)
 
+		if self.state == -1: #SPLAT
+			self.surf.blit(self.splat_image, (0,0))
 		if self.state == 0: #GROUNDED
 			if self.direction == 1: #if we are facing right
 				self.getImage(self.fly_right_sheets[honey_val], 8, self.frame) #blit right sheets
@@ -168,11 +174,15 @@ class Player():
 		elif self.state == 2:
 			self.surf.blit(self.fly_fastfall_image, (0,0))
 
+		self.mask = pygame.mask.from_surface(self.surf)
+
 		for line in self.line_ticks:
 			pygame.draw.line(surface, self.line_color, line[0], line[1], width=5)
 
 		surface.blit(self.surf, self.rect) #blit self
-
+		if attack_mask:
+			if attack_mask.overlap(self.mask, (self.rect.x, self.rect.y)):
+				self.state = -1
 		for particle in self.particles:
 			particle.render(surface)
 
@@ -190,13 +200,7 @@ class Player():
 
 	def updateRect(self): #CHECK EDGE COLLISION
 		self.rect.x = self.pos[0]-self.width/2
-		self.rect.y = self.pos[1]-self.height
-		if self.state == 0:
-			self.rect_hit.x = self.pos[0]-self.rect_hit.width/2
-			self.rect_hit.y = self.pos[1]-self.rect_hit.height
-		if self.state == 1:
-			self.rect_hit.x = self.pos[0]-self.rect_hit.width/2
-			self.rect_hit.y = self.pos[1]-self.height + 1
+		self.rect.y = self.pos[1]-self.height	
 
 	def checkEdge(self):
 		if (self.pos[0] - self.width/2) < 0:
