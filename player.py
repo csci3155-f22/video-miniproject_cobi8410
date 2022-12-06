@@ -15,6 +15,8 @@ class Player():
 		self.surf = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
 		self.rect = pygame.Rect(0, 0, self.width, self.height)
 		self.mask = pygame.mask.from_surface(self.surf)
+		self.can_end = False
+		self.fight_end = False
 
 		self.state = 0 #0-Grounded, 1-Flying
 		self.grounded_speed = 3 #Speed on ground
@@ -103,16 +105,18 @@ class Player():
 			for event in events: #looking at events
 				match (event.type, event.__dict__): #pattern match
 					case (pygame.KEYDOWN, {'unicode': ' ', 'key': 32, 'mod':_, 'scancode':_, 'window':_}): #if space pressed
+						if self.can_end:
+							self.fight_end = True
 						if self.fastfall_press_timer.tick() < 200 and self.honey > 0: #if less than 100 ms between last press
-							self.state = 2
-							if self.flying_speed > 0:
-								self.flying_speed = -8
-							else:
-								self.flying_speed = self.flying_speed - 4
-							for x in range(int(self.honey//4)): 
-								self.particles.append(Particle(self.pos[0]-22, self.pos[1]-self.height+16, random.uniform(-3,3), random.uniform(-7,-5), random.randint(10,20), random.randint(15,30), random.choice(self.honey_colors)))
-								self.particles.append(Particle(self.pos[0]+22, self.pos[1]-self.height+16, random.uniform(-3,3), random.uniform(-7,-5), random.randint(10,20), random.randint(15,30), random.choice(self.honey_colors)))
-							self.honey = 0			
+								self.state = 2
+								if self.flying_speed > 0:
+									self.flying_speed = -8
+								else:
+									self.flying_speed = self.flying_speed - 4
+								for x in range(int(self.honey//4)): 
+									self.particles.append(Particle(self.pos[0]-22, self.pos[1]-self.height+16, random.uniform(-3,3), random.uniform(-7,-5), random.randint(10,20), random.randint(15,30), random.choice(self.honey_colors)))
+									self.particles.append(Particle(self.pos[0]+22, self.pos[1]-self.height+16, random.uniform(-3,3), random.uniform(-7,-5), random.randint(10,20), random.randint(15,30), random.choice(self.honey_colors)))
+								self.honey = 0			
 
 			if keys[pygame.K_SPACE] and self.honey > 0 and self.state == 1: #if player holding space:
 				self.flying_speed = self.flying_speed + (self.honey_acceleration * delta * 60) #increase velocity
@@ -156,7 +160,8 @@ class Player():
 				if particle.width <= 0 or particle.x < 9 or particle.x > self.game_width or particle.y > self.game_height:
 					self.particles.remove(particle)
 
-	def render(self, surface, attack_mask):
+	def render(self, surface, attack_mask, vuln_mask):
+		self.can_end = False
 		self.surf.fill((0,0,0,0))
 		honey_val = int(self.honey//(self.honey_max/5+1)) #get current honey val (plus one so it doesn't loop to 0)
 
@@ -180,9 +185,14 @@ class Player():
 			pygame.draw.line(surface, self.line_color, line[0], line[1], width=5)
 
 		surface.blit(self.surf, self.rect) #blit self
-		if attack_mask:
+		if attack_mask != None:
 			if attack_mask.overlap(self.mask, (self.rect.x, self.rect.y)):
 				self.state = -1
+		
+		if vuln_mask != None:
+			if vuln_mask.overlap(self.mask, (self.rect.x, self.rect.y)):
+				self.can_end = True
+
 		for particle in self.particles:
 			particle.render(surface)
 
@@ -225,3 +235,31 @@ class Player():
 		num_frames = sheet.get_width()/self.width #get number of frames in sheet
 		index = (frame // speed) % num_frames #get index of current frame with speed
 		self.surf.blit(sheet, (0,0), (index * self.width, 0, (index+1) * self.width, self.height)) #blit frame onto surface
+
+	def reset(self):
+		self.pos = [24, 620]
+		self.previous_pos = [0,0]
+
+		self.can_end = False
+		self.fight_end = False
+
+		self.state = 0 #0-Grounded, 1-Flying
+		self.grounded_speed = 3 #Speed on ground
+		self.flying_speed = 0
+		self.max_downward_speed = 800
+		self.max_upward_speed = 10
+		self.honey_acceleration = 0.5
+		self.fastfall_downward_speed = 22
+		self.gravity = 0.3
+
+		self.button_down_time = -1 #Timer for button presses
+		self.button_up_time = pygame.time.get_ticks() #Timer for button releases
+		self.button_release = False
+		self.button_press = False
+		self.button_hold_timing = 250
+		self.direction = 1 #Direction 1: Right -1: Left
+		self.frame = 0
+
+		self.honey = 20 #player honey counter
+		self.line_timer = pygame.time.get_ticks() #timer for drawing black ticks
+		self.line_ticks = []

@@ -29,7 +29,7 @@ class Game:
 		self.clock = pygame.time.Clock()
 
 		self.player = Player(self.GAME_WIDTH, self.GAME_HEIGHT) #MAKE PLAYER
-		self.boss = blackBear((self.GAME_WIDTH, self.GAME_HEIGHT))
+		self.bosses = [grizzlyBear((self.GAME_WIDTH, self.GAME_HEIGHT))]
 
 	def update(self, events, delta, keys):
 		self.state_stack[-1].update(events, delta, keys)
@@ -38,10 +38,9 @@ class Game:
 		self.state_stack[-1].render(self.game_canvas, delta)
 		self.WIN.blit(pygame.transform.scale(self.game_canvas, (self.WIDTH, self.HEIGHT)),(0,0))
 		fps = str(int(Game.clock.get_fps()))
-		fps_text = Game.temp_font.render(fps, 1, pygame.Color("coral"))
+		fps_text = Game.temp_font.render(fps, 1, pygame.Color("coral")) 
 		self.WIN.blit(fps_text, (10,10)) 
 		pygame.display.update()
-
 
 	def game_loop(self):
 		delta = Game.clock.tick(Game.FPS)/1000
@@ -57,4 +56,10 @@ class Game:
 		if keys[pygame.K_p]:
 			pygame.image.save(self.WIN, 'assets/screenshots/screenshot{0}.png'.format(self.screenshot_counter))
 			self.screenshot_counter = self.screenshot_counter + 1
+
+	def getBoss(self, boss_type):
+		if boss_type == 0: #BLACK BEAR
+			return blackBear((self.GAME_WIDTH, self.GAME_HEIGHT))
+		elif boss_type == 1: #GRIZZLY BEAR
+			return grizzlyBear((self.GAME_WIDTH, self.GAME_HEIGHT))
 
