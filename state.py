@@ -62,40 +62,37 @@ class fightState(State):
 		if self.game.player.state != -1:
 			self.percent = (pygame.time.get_ticks()-self.init_time)/self.boss.fight_time
 
-		if self.boss.fight_finished: #if boss is done
-			end_surf = self.getEndSurf()
-			end_surf.fill((64,61,44), special_flags=1)
-			new_state = fightEndState(self.game, end_surf, False)
-			self.exit_state()
-			new_state.enter_state()
+		if self.boss.fight_finished: #if boss is done winning
+			end_surf = self.getEndSurf() #get copy of last surface
+			end_surf.fill((64,61,44), special_flags=1) #fill with mask
+			new_state = fightEndState(self.game, end_surf, False) #pass surface and False for loss to ending fight state
+			self.exit_state() #remove self from state stack
+			new_state.enter_state() #add new stack to state stack and enter
 
-		if self.boss.loss_finished:
-			end_surf = self.getEndSurf()
+		if self.boss.loss_finished: #if boss is done losing
+			end_surf = self.getEndSurf() #get copy of last surface
 			end_surf.fill((64,61,44), special_flags=1)
-			new_state = fightEndState(self.game, end_surf, True)
-			self.exit_state()
-			new_state.enter_state()
+			new_state = fightEndState(self.game, end_surf, True) #pass surface and True for win to ending fight state
+			self.exit_state() #remove self from stack
+			new_state.enter_state() #add new state to stack
 
 		if self.game.player.state == -1: #if player dead
 			self.boss.WIN_FLAG = True #set boss state to win
-		if self.game.player.fight_end:
-			self.boss.LOSE_FLAG = True
-			if self.boss.state != -3:
-				self.boss.frame = 0
+		if self.game.player.fight_end: #if player has stung boss
+			self.boss.LOSE_FLAG = True #set boss state to lose
+			if self.boss.state != -3: #if not already set
+				self.boss.frame = 0 #reset frame
 			self.boss.state = -3
 
 
-		self.honey_bar_cover.height = (self.honey_bar_rect.height-10) * (1 - (self.game.player.honey/self.game.player.honey_max))
-		if self.game.player.state != -1:
-			if (pygame.time.get_ticks()-self.init_time)/self.boss.fight_time < 1:
-				self.progress_bee_rect.x = 26 + (self.game.GAME_WIDTH-26*2 - self.progress_bee.get_width()) * self.percent
+		self.honey_bar_cover.height = (self.honey_bar_rect.height-10) * (1 - (self.game.player.honey/self.game.player.honey_max)) #get height of rectangle covering honey meter, inverse prop to amount of honey
+		if self.game.player.state != -1: #if player isn't dead
+			if (pygame.time.get_ticks()-self.init_time)/self.boss.fight_time < 1: #if we are still tiring the boss, not fully done
+				self.progress_bee_rect.x = 26 + (self.game.GAME_WIDTH-26*2 - self.progress_bee.get_width()) * self.percent #move the bee across the progress bar
 
-		if pygame.time.get_ticks()-self.init_time > self.boss.fight_time: #if fight time is over
-			self.boss.vulnerable = True
+		if pygame.time.get_ticks()-self.init_time > self.boss.fight_time: #if invincible time is over
+			self.boss.vulnerable = True #make boss vulnerable
 
-
-		if len(self.boss.particles) > 0: #if boss has particles
-			self.particles = self.particles + self.boss.particles #add them to our list
 		if len(self.particles) > 0:
 			for particle in self.particles:
 				particle.update(delta)
@@ -162,19 +159,17 @@ class fightState(State):
 		else:
 			self.rumble_offset = [0,0]
 
-class fightEndState(State):
+"""class fightEndState(State):
 	def __init__(self, game, background, is_win):
 		self.game = game
 		self.background = background
-		self.is_win = is_win
+		self.is_win = is_win #true if player won, false if player lost
 		self.lose_screen, self.win_screen = pygame.image.load('assets/ui/lose_text.png'), pygame.image.load('assets/ui/win_text.png')
-		self.init_time = pygame.time.get_ticks()
+		self.init_time = pygame.time.get_ticks() #init time of state
 
 	def update(self, events, delta, keys):
-		if keys[pygame.K_SPACE] and pygame.time.get_ticks()-self.init_time > 2000:
-			new_state = titleState(self.game)
+		if keys[pygame.K_SPACE] and pygame.time.get_ticks()-self.init_time > 2000: #if 
 			self.exit_state()
-			new_state.enter_state()
 
 	def render(self, surface, delta):
 		surface.blit(self.background, (0,0))
@@ -182,45 +177,46 @@ class fightEndState(State):
 			if self.is_win:
 				surface.blit(self.win_screen, (0,0))
 			else:
-				surface.blit(self.lose_screen, (0,0))
+				surface.blit(self.lose_screen, (0,0))"""
 
 class menuState(State):
 	def __init__(self, game):
-		self.game = game
-		self.bg = None
-		self.key_hold_timer = -1
-		self.key_accept_hold_time = 1500
-		self.cursor_id = 0
-		self.max_cursor_id = 2
-		self.selected_function = None
-		self.cursor = None
-		self.cursor_rect_pos = []
-		self.button_press = False
-		#self.cursor_move_timer = pygame.time.Clock()
+		self.game = game 
+		self.bg = None #bg image
+		self.key_hold_timer = -1 #timer that holds time since previous button down, -1 if button not pressed
+		self.key_accept_hold_time = 1000 #how long we have to hold to select stuff
+		self.cursor_id = 0 #id of cursor in menu
+		self.max_cursor_id = 2 #max number of items in menu (so we can loop at bottom)
+		self.selected_function = None #screen specific function for selection in menu
+		self.cursor = None #cursor icon
+		self.cursor_rect_pos = [] #positions cursor icon can be in
+		self.button_press = False #if button is being pessed
 
-	def update(self, events, delta, keys, ):
-		self.selected = False
-		if keys[pygame.K_SPACE]:
+	def update(self, events, delta, keys):
+		if keys[pygame.K_SPACE]: #if space is held
 			if pygame.time.get_ticks() - self.key_hold_timer > self.key_accept_hold_time and self.key_hold_timer > 0: #if they have held long enough
-				self.selected_function(self.cursor_id)
+				self.selected_function(self.cursor_id) #do selected function and return
 				return
 
-		for event in events:
+		for event in events: #look at events
 			match (event.type, event.__dict__): #pattern match on event type/dict
-				case (pygame.KEYDOWN, {'unicode': ' ', 'key': 32, 'mod':_, 'scancode':_, 'window':_}):
-					self.key_hold_timer = pygame.time.get_ticks()
-				case (pygame.KEYUP, {'unicode': ' ', 'key': 32, 'mod':_, 'scancode':_, 'window':_}):
-					if self.key_hold_timer != -1:
-						self.cursor_id = (self.cursor_id + 1) % self.max_cursor_id
-					self.key_hold_timer = -1
-
-		print(self.key_hold_timer)
+				case (pygame.KEYDOWN, {'unicode': ' ', 'key': 32, 'mod':_, 'scancode':_, 'window':_}): #if they pressed spacebar
+					self.key_hold_timer = pygame.time.get_ticks() #reset hold timer
+				case (pygame.KEYUP, {'unicode': ' ', 'key': 32, 'mod':_, 'scancode':_, 'window':_}): #if they released spacebar
+					if self.key_hold_timer != -1: #protect against key up registering after initially switching menus, required key down first
+						self.cursor_id = (self.cursor_id + 1) % self.max_cursor_id #increase cursor id
+					self.key_hold_timer = -1 #set to -1 to signify key not held
 
 	def render(self, surface, delta):
-		surface.blit(self.bg, (0,0))
-		surface.blit(self.cursor, self.cursor_rect_pos[self.cursor_id])
+		surface.blit(self.bg, (0,0)) #draw bg
+		surface.blit(self.cursor, self.cursor_rect_pos[self.cursor_id]) #draw cursor
 
-class bossChoiceState(menuState):
+	def reset(self):
+		self.key_hold_timer = -1 #timer that holds time since previous button down, -1 if button not pressed
+		self.cursor_id = 0 #id of cursor in menu
+		self.button_press = False #if button is being pessed
+
+class bossChoiceState(menuState): #CHOSE WHICH BOSS TO FIGHT
 	def __init__(self, game):
 		menuState.__init__(self, game)
 		self.bg = pygame.image.load('assets/screens/temp_boss_select.png').convert_alpha()
@@ -229,12 +225,14 @@ class bossChoiceState(menuState):
 		self.cursor_rect_pos = [((self.game.GAME_WIDTH-self.cursor.get_width())/2,46), ((self.game.GAME_WIDTH-self.cursor.get_width())/2,self.game.GAME_HEIGHT-46-self.cursor.get_height())]
 
 	def initiateFight(self, bear_id):
-		bear = self.game.getBoss(bear_id)
-		self.cursor_id = 0
-		new_state = fightState(self.game, bear)
-		new_state.enter_state()
-
-class titleState(menuState):
+		#0-BLACK, 1-GRIZZLY, 2-PANDA
+		bear = self.game.getBoss(bear_id) #get bear from game based on id
+		self.cursor_id = 0 #reset cursor id
+		self.exit_state()
+		new_state = fightState(self.game, bear) #create fight state and pass in generated bear
+		new_state.enter_state() #enter new state, dont need to pop self
+ 
+class titleState(menuState): #THE TITLE SCREEN
 	def __init__(self, game):
 		menuState.__init__(self, game)
 		self.bg = pygame.transform.scale(pygame.image.load('assets/screens/title.png'), (self.game.GAME_WIDTH, self.game.GAME_HEIGHT))
@@ -246,7 +244,28 @@ class titleState(menuState):
 		surface.blit(self.bg, (0,0))
 
 	def exitTitle(self, cursor_id):
+		self.reset()
 		new_state = bossChoiceState(self.game)
 		new_state.enter_state()
 		
 	
+class fightEndState(menuState):
+	def __init__(self, game, background, is_win):
+		menuState.__init__(self, game)
+		self.game = game
+		self.bg = background
+		self.is_win = is_win #true if player won, false if player lost
+		self.lose_screen, self.win_screen = pygame.image.load('assets/ui/lose_text.png'), pygame.image.load('assets/ui/win_text.png')
+		self.init_time = pygame.time.get_ticks() #init time of state
+		self.selected_function = self.changeState
+
+	def render(self, surface, delta):
+		surface.blit(self.bg, (0,0))
+		if pygame.time.get_ticks()-self.init_time > 1500: #delay win/loss message
+			if self.is_win: #if player won
+				surface.blit(self.win_screen, (0,0)) #draw player win screen
+			else:
+				surface.blit(self.lose_screen, (0,0))
+
+	def changeState(self, cursor_id):
+		self.exit_state()

@@ -233,16 +233,17 @@ class grizzlyBear(Boss):
 		attack4 = {'id':4,'name':'left_hand_sweep', 'anticipations':[2, 1], 'windup':4, 'recovery':4, 'windup_frames':5, 'attack_frames':15, 'recovery_frames':5, 'ant_speed':7, 'wind_speed':9, 'atk_speed':3, 'rec_speed':6, 'rumble_frames': [x for x in range(0,16)]}
 		attacks.append(attack4)
 		#ATTACK 5, DOUBLE RIGHT HAND SLAM
-		attack5 = {'id':5,'name':'double_right_hand_slam', 'anticipations':[4,2,0], 'windup':0, 'recovery':0, 'windup_frames':6, 'attack_frames':11, 'recovery_frames':4, 'ant_speed':7, 'wind_speed':7, 'atk_speed':5, 'rec_speed':6, 'rumble_frames': [2,3,4,8,9,10]}
+		attack5 = {'id':5,'name':'double_right_hand_slam', 'anticipations':[4,0], 'windup':0, 'recovery':0, 'windup_frames':6, 'attack_frames':11, 'recovery_frames':4, 'ant_speed':7, 'wind_speed':7, 'atk_speed':5, 'rec_speed':6, 'rumble_frames': [2,3,4,8,9,10]}
 		attacks.append(attack5)
 		#ATTACK 6, DOUBLE LEFT HAND SLAM
-		attack6 = {'id':6,'name':'double_left_hand_slam', 'anticipations':[4,2,1], 'windup':1, 'recovery':1, 'windup_frames':6, 'attack_frames':11, 'recovery_frames':4, 'ant_speed':7, 'wind_speed':7, 'atk_speed':5, 'rec_speed':6, 'rumble_frames': [2,3,4,8,9,10]}
+		attack6 = {'id':6,'name':'double_left_hand_slam', 'anticipations':[4,1], 'windup':1, 'recovery':1, 'windup_frames':6, 'attack_frames':11, 'recovery_frames':4, 'ant_speed':7, 'wind_speed':7, 'atk_speed':5, 'rec_speed':6, 'rumble_frames': [2,3,4,8,9,10]}
 		attacks.append(attack6)
-		#ATTACK 7, RIGHT HAND SWEEP
-		attack7 = {'id':7,'name':'double_right_hand_sweep', 'anticipations':[4,0], 'windup':3, 'recovery':5, 'windup_frames':5, 'attack_frames':30, 'recovery_frames':5, 'ant_speed':7, 'wind_speed':9, 'atk_speed':3, 'rec_speed':6, 'rumble_frames': [x for x in range(0,31)]}
+		#ATTACK 7, DOUBLE RIGHT HAND SWEEP
+		attack7 = {'id':7,'name':'double_right_hand_sweep', 'anticipations':[4,2,0], 'windup':3, 'recovery':5, 'windup_frames':5, 'attack_frames':30, 'recovery_frames':5, 'ant_speed':7, 'wind_speed':9, 'atk_speed':3, 'rec_speed':6, 'rumble_frames': [x for x in range(0,31)]}
 		attacks.append(attack7)
-		attack8 = {'id':8,'name':'double_left_hand_sweep', 'anticipations':[4,1], 'windup':4, 'recovery':6, 'windup_frames':5, 'attack_frames':30, 'recovery_frames':5, 'ant_speed':7, 'wind_speed':9, 'atk_speed':3, 'rec_speed':6, 'rumble_frames': [x for x in range(0,31)]}
-		attacks.append(attack7)
+		#ATTACK 8, DOUBLE LEFT HAND SWEEP
+		attack8 = {'id':8,'name':'double_left_hand_sweep', 'anticipations':[4,2,1], 'windup':4, 'recovery':6, 'windup_frames':5, 'attack_frames':30, 'recovery_frames':5, 'ant_speed':7, 'wind_speed':9, 'atk_speed':3, 'rec_speed':6, 'rumble_frames': [x for x in range(0,31)]}
+		attacks.append(attack8)
 		return attacks
 
 	def getAnticipationList(self):
