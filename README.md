@@ -21,7 +21,7 @@ To navigate menus, tap space to select the option you would like. Hold space to 
 
 This is very much a beta version of the game. Boss fight system is mostly there (needs particles and polish) but I definitely want to add more bosses and a sense of progression. 
 
-- YouTube: https://youtu.be/TODO.
+- YouTube: https://www.youtube.com/watch?v=fBqN2LGMlSs
 - Script: script.pdf
 - Recording: recording.mp4
 - Slides slides.pdf
