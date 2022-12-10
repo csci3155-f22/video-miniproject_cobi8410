@@ -62,4 +62,6 @@ class Game:
 			return blackBear((self.GAME_WIDTH, self.GAME_HEIGHT))
 		elif boss_type == 1: #GRIZZLY BEAR
 			return grizzlyBear((self.GAME_WIDTH, self.GAME_HEIGHT))
+		elif boss_type == 2: #PANDA BEAR
+			return pandaBear((self.GAME_WIDTH, self.GAME_HEIGHT))
 

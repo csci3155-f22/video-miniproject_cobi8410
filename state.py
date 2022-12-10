@@ -191,6 +191,7 @@ class menuState(State):
 		self.cursor = None #cursor icon
 		self.cursor_rect_pos = [] #positions cursor icon can be in
 		self.button_press = False #if button is being pessed
+		self.frame = 0
 
 	def update(self, events, delta, keys):
 		if keys[pygame.K_SPACE]: #if space is held
@@ -206,6 +207,7 @@ class menuState(State):
 					if self.key_hold_timer != -1: #protect against key up registering after initially switching menus, required key down first
 						self.cursor_id = (self.cursor_id + 1) % self.max_cursor_id #increase cursor id
 					self.key_hold_timer = -1 #set to -1 to signify key not held
+		self.frame = self.frame + 1
 
 	def render(self, surface, delta):
 		surface.blit(self.bg, (0,0)) #draw bg
@@ -221,8 +223,14 @@ class bossChoiceState(menuState): #CHOSE WHICH BOSS TO FIGHT
 		menuState.__init__(self, game)
 		self.bg = pygame.image.load('assets/screens/temp_boss_select.png').convert_alpha()
 		self.selected_function = self.initiateFight
-		self.cursor = pygame.image.load('assets/ui/temp_boss_cursor.png').convert_alpha()
-		self.cursor_rect_pos = [((self.game.GAME_WIDTH-self.cursor.get_width())/2,46), ((self.game.GAME_WIDTH-self.cursor.get_width())/2,self.game.GAME_HEIGHT-46-self.cursor.get_height())]
+		self.max_cursor_id = 3
+		self.cursor = pygame.transform.scale(pygame.image.load('assets/ui/temp_boss_cursor_sheet.png'), (self.game.GAME_WIDTH*3, self.game.GAME_HEIGHT)).convert_alpha()
+		#self.cursor_rect_pos = [((self.game.GAME_WIDTH-self.cursor.get_width())/2,46), ((self.game.GAME_WIDTH-self.cursor.get_width())/2,self.game.GAME_HEIGHT-46-self.cursor.get_height())]
+
+	def render(self, surface, delta):
+		surface.blit(self.bg, (0,0))
+		if self.frame % 40 < 20:
+			surface.blit(self.cursor, (0,0), ((self.cursor_id)*self.game.GAME_WIDTH, 0, (self.cursor_id+1)*self.game.GAME_WIDTH, self.game.GAME_HEIGHT))
 
 	def initiateFight(self, bear_id):
 		#0-BLACK, 1-GRIZZLY, 2-PANDA
